@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html 
+      { 
+        margin-left: auto;
+        margin-right: auto;
+        height: 100%;
+        width: 100%;
+      }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map_canvas { height: 100% }
+    </style>
+    <script type="text/javascript" src="jQuery.js"></script>
+    <script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?sensor=false&libraries=drawing">
+    </script>
+    <script type="text/javascript" src="markers.json"></script>
+    <script type="text/javascript" src="clusterer.js"></script>
+    <script type="text/javascript">
+    
+     
+     $(document).ready(function(){
+
+          var myOptions = {
+          center: new google.maps.LatLng(40.1, -88.2),
+          zoom: 13,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map_canvas"),
+            myOptions);
+            
+
+      
+
+            
+        var drawingManager = new google.maps.drawing.DrawingManager(
+        {
+          drawingMode: google.maps.drawing.OverlayType.MARKER,
+          drawingControl: true,
+          drawingControlOptions: {
+            position: google.maps.ControlPosition.TOP_CENTER,
+            drawingmodes: [google.maps.drawing.OverlayType.MARKER,  google.maps.drawing.OverlayType.CIRCLE]},
+        });
+        
+        google.maps.event.addListener(drawingManager, 'markercomplete', function(marker) {
+  
+            var location = marker.getPosition();
+            
+            $.post("save.php", {lat:location.lat(), lng:location.lng()});
+
+          });
+
+         drawingManager.setMap(map);
+
+      
+        var marker_list = [];
+        var markerImg = new google.maps.MarkerImage("green_MarkerP.png");
+
+        for(var i in data.locations)
+        {
+          var latlng = data.locations[i];
+
+          var lat = Number(latlng[0]);
+          var lng = Number(latlng[1]);
+
+          var marker_latlng = new google.maps.LatLng(lat, lng);
+          var marker = new google.maps.Marker({
+            position: marker_latlng,
+            icon: markerImg,
+            map: map,
+            clickable: true
+          });
+
+          google.maps.event.addListener(marker, 'click', rm_marker);
+        }
+
+
+        function rm_marker()
+        {
+          var remove = confirm("Do you want to remove this marker?")
+          if(remove)
+          {
+              //this.setMap(null);
+              var tempMarker = this;
+              console.log(tempMarker);
+              console.log(typeof tempMarker.getPosition().lat());
+
+              $.post("update.php", {lat: tempMarker.getPosition().lat()}, function(){tempMarker.setMap(null);});
+          }
+        }
+        
+    });
+    
+      
+
+
+    </script>
+  </head>
+  <body>
+    <div id="map_canvas" style="width:100%; height:100%"></div>
+  </body>
+</html>

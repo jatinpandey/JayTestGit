@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+  <html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map_canvas { height: 100%; margin-left: auto; margin-right: auto }
+    </style>
+
+    <script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?key=AIzaSyBc9f_vxiYj1-milmVVWNBEthAJJfmdnPY&sensor=true">
+    </script>
+    
+    <script type="text/javascript" src="jQuery.js"></script>
+    <script type="text/javascript" src="markerclusterer_compiled.js"></script>
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+          
+
+
+        var myOptions = {
+          center: new google.maps.LatLng(40.105, -88.228),
+          zoom: 14,
+          draggingCursor: "cycling.png",
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          streetViewControl: false
+        };
+        
+        var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+
+        //var bikeLayer = new google.maps.BicyclingLayer();
+       // bikeLayer.setMap(map);
+       
+        var globalInfoWindow = new google.maps.InfoWindow();
+        var offset = new google.maps.Size(17,-10);
+        globalInfoWindow.setOptions({pixelOffset: offset});
+
+
+        var illiniCampusStyles = [
+            {featureType: "all",stylers: [{ saturation: -80 }]},
+            {featureType: "road.highway",stylers: [{hue:"#ff1a00"}, {lightness:-22}, {saturation:40}]},
+            {featureType: "road.arterial",stylers: [{hue:"#ff1a00"}, {lightness:-22}, {saturation:40}]},
+            {featureType: "poi.school",stylers: [
+                                      { hue: "#ff7700" },
+                                      { lightness: -5 },
+                                      { saturation: 70 }]},
+            {featureType: "poi.park",elementType: "geometry",stylers: [{ saturation: 78 },{ hue: "#006eef" },{ lightness: -6 }]},
+            {featureType: "landscape.man_made",elementType: "labels",stylers: [{ lightness: 0 },{ saturation: 40 },{ hue: "#ff7700" }]}
+            ];
+
+        map.setOptions({styles: illiniCampusStyles});
+   
+
+
+
+
+        
+        
+        $.ajax({
+          url: 'retrieve.php',
+          dataType: 'json',
+          success: function(locations){
+            
+            var markerImg = new google.maps.MarkerImage("blue_MarkerP.png");  // sets image for the markers
+            var marker_list = [];
+
+            
+            for(var i in locations)
+            { 
+                var latlng = locations[i];
+
+                var lat = Number(latlng[0]);
+                var lng = Number(latlng[1]);
+
+              
+                var real_latlng = new google.maps.LatLng(lat, lng);
+                var marker = new google.maps.Marker({
+                  position: real_latlng,
+                  //icon: markerImg,
+                  map: map,
+                  cursor: "cycling.png",
+                  setVisible: true,
+                  clickable:true
+
+                });
+
+                marker_list.push(marker);
+                marker.setAnimation(google.maps.Animation.BOUNCE);
+               google.maps.event.addListener(marker, 'click', showLoc);
+                
+            }
+        
+
+            var cluster = new MarkerClusterer(map, marker_list);
+            cluster.setMaxZoom(16);
+            console.log("done loading markers");
+          }
+        });
+        
+        
+
+        function viewLocPic()
+        {
+          console.log("this refers to " + this);
+          globalInfoWindow.setPosition(this.getPosition());
+          globalInfoWindow.setContent("<img src='cycling.png'/>");
+          globalInfoWindow.open(map, this);
+        }
+
+        function showLoc()
+        {
+            console.log(this.getPosition());
+        
+        }
+
+    });
+
+
+      
+    </script>
+  </head>
+  <body>
+
+    <div id="map_canvas" style="width:70%; height:100%"> 
+      </div>
+  </body>
+
+</html>
+
